@@ -212,7 +212,7 @@ docker logs front-app
 
 ## Pruebas realizadas
 
-Para comprobar que la aplicacion si funciona, se hicieron pruebas creando tareas sencillas de ejemplo.
+Para comprobar que la aplicacion si funciona, le hice pruebas creando tareas sencillas de ejemplo.
 
 Algunos ejemplos usados:
 
@@ -221,31 +221,4 @@ Algunos ejemplos usados:
 - lavar la loza
 - sacar la basura
 
-Con esas tareas se comprobó lo siguiente:
 
-- la pagina carga en el navegador
-- se pueden crear tareas nuevas
-- las tareas aparecen en la lista
-- el estado de una tarea se puede cambiar
-- la informacion queda guardada en la base de datos
-
-## Resumen
-
-Se uso Docker con cosas basicas:
-
-- construccion de imagenes
-- uso de redes
-- uso de volumenes
-- ejecucion manual de contenedores
-
-Ademas, se cumplio con lo solicitado en el PDF:
-
-- backend con framework
-- frontend con framework
-- frontend servido con Nginx
-- Nginx como proxy inverso
-- imagenes personalizadas
-- multi-stage build
-- dos redes Docker
-- volumen para base de datos
-- sin uso de `docker-compose`
