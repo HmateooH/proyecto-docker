@@ -1,51 +1,74 @@
 # Despliegue de una Aplicacion Web Completa con Contenedores
 
-## Descripcion del proyecto
+## Descripcion
 
-Este proyecto es una aplicacion web sencilla para registrar tareas.
-La idea fue hacer algo simple para mostrar que el frontend, el backend y la base de datos si se conectan.
+En este trabajo hice una aplicacion web sencilla de tareas.
+La idea fue hacer algo basico pero funcional, para demostrar que el frontend, el backend y la base de datos si se pueden conectar usando contenedores Docker.
 
-- `front`: interfaz hecha con React.
-- `back`: API desarrollada con Express.
-- `bd`: base de datos PostgreSQL.
+La aplicacion permite:
 
-El frontend se sirve con Nginx y desde ahi tambien se mandan las peticiones al backend.
+- crear tareas
+- ver las tareas guardadas
+- cambiar el estado de una tarea
 
-## Tecnologias utilizadas
+## Tecnologias usadas
 
-- React con Vite para el frontend
-- Nginx para servir el frontend
-- Node.js con Express para el backend
-- TypeScript en el backend
-- PostgreSQL como base de datos
-- Docker para crear y ejecutar los contenedores
+- React con Vite
+- Node.js
+- Express
+- TypeScript
+- PostgreSQL
+- Nginx
+- Docker
 
-## Estructura del repositorio
+## Estructura del proyecto
+
+La estructura del repositorio es esta:
 
 ```text
-/
-├── back/
-├── front/
-└── README.md
+/back
+/front
+README.md
 ```
 
-## Explicacion general de Docker en este proyecto
+## Como esta dividido
 
-En este trabajo no se uso `docker-compose`, porque el PDF pide hacerlo con comandos manuales.
+### Front
 
-En Docker se uso esto:
+En `front` esta la parte visual de la aplicacion.
+Se hizo con React.
+Cuando se construye la imagen, el frontend se sirve con Nginx.
 
-- dos imagenes personalizadas, una para el backend y otra para el frontend
-- dos redes, una para frontend y backend, y otra para backend y base de datos
-- un volumen, para que PostgreSQL no pierda la informacion si el contenedor se elimina
+### Back
 
-## Backend
+En `back` esta el backend.
+Se hizo con Express y TypeScript.
+El backend expone el API y se conecta con PostgreSQL.
 
-La imagen del backend se construye desde la carpeta `back`.
-Se usa un `Dockerfile` con dos etapas.
+### Base de datos
 
-- primera etapa: instala dependencias y compila el proyecto
-- segunda etapa: crea una imagen mas liviana con solo lo necesario para ejecutar
+La base de datos usada es PostgreSQL.
+Se levanta con la imagen oficial y usa un volumen para guardar la informacion.
+
+## Docker en este proyecto
+
+Para este trabajo no use `docker-compose`, porque el PDF dice que todo debe hacerse con comandos manuales.
+
+En Docker use:
+
+- una imagen personalizada para el backend
+- una imagen personalizada para el frontend
+- dos redes Docker
+- un volumen Docker
+
+## Imagen del backend
+
+La imagen del backend se construye con el archivo `back/Dockerfile`.
+
+Este Dockerfile usa dos etapas:
+
+- una etapa para instalar dependencias y compilar
+- otra etapa para ejecutar la aplicacion con solo lo necesario
 
 Comando:
 
@@ -53,13 +76,14 @@ Comando:
 docker build -t proyecto-back ./back
 ```
 
-## Frontend
+## Imagen del frontend
 
-La imagen del frontend se construye desde la carpeta `front`.
-Tambien usa dos etapas:
+La imagen del frontend se construye con el archivo `front/Dockerfile`.
 
-- primera etapa: instala dependencias y genera la carpeta `dist`
-- segunda etapa: usa Nginx para servir los archivos ya compilados
+Tambien use dos etapas:
+
+- una etapa para construir el frontend
+- otra etapa con Nginx para servir los archivos generados
 
 Comando:
 
@@ -67,12 +91,15 @@ Comando:
 docker build -t proyecto-front ./front
 ```
 
-## Redes
+## Redes Docker
 
-Se crean dos redes porque eso lo pide el trabajo:
+En este proyecto use dos redes:
 
-- `front-back-net`: conecta el frontend con el backend
-- `back-db-net`: conecta el backend con la base de datos
+- `front-back-net`
+- `back-db-net`
+
+La primera se usa para comunicar el frontend con el backend.
+La segunda se usa para comunicar el backend con la base de datos.
 
 Comandos:
 
@@ -81,10 +108,10 @@ docker network create front-back-net
 docker network create back-db-net
 ```
 
-## Volumen
+## Volumen Docker
 
-El volumen se usa para guardar los datos de PostgreSQL.
-Asi la informacion no se pierde facilmente.
+Para la base de datos use un volumen llamado `postgres-data`.
+Eso sirve para que los datos no se pierdan facilmente si el contenedor se elimina.
 
 Comando:
 
@@ -92,73 +119,40 @@ Comando:
 docker volume create postgres-data
 ```
 
-## Base de datos
-
-Primero se ejecuta PostgreSQL en la red `back-db-net`.
-Tambien se le asigna el volumen `postgres-data`.
-
-Comando:
+## Levantar la base de datos
 
 ```text
 docker run -d --name postgres-db --network back-db-net -e POSTGRES_DB=tasksdb -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -v postgres-data:/var/lib/postgresql/data postgres:17-alpine
 ```
 
-Significado rapido:
-
-- `--name postgres-db`: nombre del contenedor
-- `--network back-db-net`: lo conecta a la red del backend
-- `-e ...`: define variables de entorno
-- `-v postgres-data:/var/lib/postgresql/data`: conecta el volumen
-
-## Backend en ejecucion
-
-El backend se conecta primero a la red de base de datos, porque necesita hablar con PostgreSQL.
-
-Comando:
+## Levantar el backend
 
 ```text
 docker run -d --name back-app --network back-db-net -e PORT=3000 -e DB_HOST=postgres-db -e DB_PORT=5432 -e DB_NAME=tasksdb -e DB_USER=postgres -e DB_PASSWORD=postgres proyecto-back
 ```
 
-Despues se conecta tambien a la red del frontend:
+Despues de eso hay que conectarlo tambien a la red del frontend:
 
 ```bash
 docker network connect front-back-net back-app
 ```
 
-Esto se hace para que el backend quede en las dos redes:
-
-- una red para hablar con la base de datos
-- otra red para recibir las peticiones del frontend
-
-## Frontend en ejecucion
-
-El frontend se ejecuta en la red `front-back-net` y expone el puerto `8080` de tu computadora hacia el puerto `80` del contenedor.
-
-Comando:
+## Levantar el frontend
 
 ```text
 docker run -d --name front-app --network front-back-net -p 8080:80 proyecto-front
 ```
 
-## Como funciona todo
+## Como funciona
 
-Cuando ya estan levantados los contenedores, funciona asi:
+Cuando todo esta levantado, funciona asi:
 
-- El navegador entra a `http://localhost:8080`
-- Nginx responde el frontend
-- Nginx reenvia `/api/...` al contenedor `back-app`
-- El backend consulta la base de datos `postgres-db`
+- el navegador entra por `http://localhost:8080`
+- Nginx sirve el frontend
+- Nginx manda las peticiones `/api` al backend
+- el backend consulta o guarda datos en PostgreSQL
 
-## Acceso a la aplicacion
-
-Cuando todo este corriendo, la aplicacion se abre en:
-
-```text
-http://localhost:8080
-```
-
-## Comandos para levantar todo
+## Comandos completos para levantar todo
 
 ```bash
 docker build -t proyecto-back ./back
@@ -178,15 +172,23 @@ docker network connect front-back-net back-app
 docker run -d --name front-app --network front-back-net -p 8080:80 proyecto-front
 ```
 
+## Puerto de la aplicacion
+
+La aplicacion se abre en:
+
+```text
+http://localhost:8080
+```
+
 ## Comandos utiles
 
-Ver contenedores activos:
+Ver contenedores:
 
 ```bash
 docker ps
 ```
 
-Ver redes creadas:
+Ver redes:
 
 ```bash
 docker network ls
@@ -210,15 +212,35 @@ Ver logs del frontend:
 docker logs front-app
 ```
 
-## Pruebas realizadas
+## Pruebas hechas
 
-Para comprobar que la aplicacion si funciona, le hice pruebas creando tareas sencillas de ejemplo.
-
-Algunos ejemplos usados:
+Para revisar que la aplicacion si funcionaba, hice pruebas creando tareas sencillas como estas:
 
 - comprar pan
 - ordenar el cuarto
 - lavar la loza
 - sacar la basura
 
+Con eso pude comprobar:
 
+- que la pagina carga
+- que el frontend si consume el backend
+- que se pueden crear tareas
+- que las tareas aparecen en pantalla
+- que el estado cambia al presionar el boton
+- que la informacion queda guardada en la base de datos
+
+## Resumen
+
+Con este proyecto se cumple lo pedido en el PDF:
+
+- backend con framework
+- frontend con framework
+- frontend servido con Nginx
+- Nginx como proxy inverso
+- imagen personalizada para back
+- imagen personalizada para front
+- multi-stage build en ambas imagenes
+- dos redes Docker
+- volumen Docker para la base de datos
+- sin usar docker-compose
