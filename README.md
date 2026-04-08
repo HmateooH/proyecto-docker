@@ -221,26 +221,9 @@ Para revisar que la aplicacion si funcionaba, hice pruebas creando tareas sencil
 - lavar la loza
 - sacar la basura
 
-Con eso pude comprobar:
 
-- que la pagina carga
-- que el frontend si consume el backend
-- que se pueden crear tareas
-- que las tareas aparecen en pantalla
-- que el estado cambia al presionar el boton
-- que la informacion queda guardada en la base de datos
 
-## Resumen
 
-Con este proyecto se cumple lo pedido en el PDF:
 
-- backend con framework
-- frontend con framework
-- frontend servido con Nginx
-- Nginx como proxy inverso
-- imagen personalizada para back
-- imagen personalizada para front
-- multi-stage build en ambas imagenes
-- dos redes Docker
-- volumen Docker para la base de datos
-- sin usar docker-compose
+
+
